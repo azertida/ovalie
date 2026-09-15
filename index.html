@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ovalie — Classements rugby</title>
+<meta name="description" content="Scores et classements rugby paramétrables par compétition">
+<meta name="theme-color" content="#1E4633">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ovalie">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F1E7;
+  --card:#FDFBF5;
+  --pitch:#1E4633;
+  --pitch-soft:#2C5C45;
+  --leather:#8B5E3C;
+  --ink:#26221B;
+  --muted:#7A7264;
+  --line:#E2DACA;
+  --gold:#C9A227;
+  --danger:#A63D2F;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow-x:hidden;max-width:100%}
+body{
+  font-family:'Atkinson Hyperlegible',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  min-height:100vh;
+  padding-bottom:60px;
+}
+header{
+  background:var(--pitch);
+  color:var(--paper);
+  padding:18px 16px 14px;
+}
+header h1{
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:1.7em;
+  letter-spacing:.01em;
+  display:flex;align-items:center;gap:10px;
+}
+header h1 .ball{
+  display:inline-block;width:26px;height:17px;border-radius:50%;
+  background:var(--leather);
+  border:2px solid var(--paper);
+  transform:rotate(-18deg);
+  position:relative;flex-shrink:0;
+}
+header h1 .ball::after{
+  content:'';position:absolute;left:50%;top:3px;bottom:3px;width:1.5px;
+  background:var(--paper);transform:translateX(-50%);
+}
+header p{font-size:.85em;opacity:.75;margin-top:2px}
+.comp-bar{
+  display:flex;gap:8px;padding:12px 16px;
+  background:var(--pitch-soft);
+  align-items:center;
+}
+.comp-bar select{
+  flex:1;min-width:0;
+  padding:9px 10px;border-radius:8px;border:none;
+  font-family:'Atkinson Hyperlegible',sans-serif;font-size:1em;
+  background:var(--card);color:var(--ink);
+}
+.comp-bar button{
+  padding:9px 13px;border-radius:8px;border:none;cursor:pointer;
+  background:var(--gold);color:var(--ink);font-weight:700;font-size:1em;
+  font-family:'Atkinson Hyperlegible',sans-serif;
+}
+nav.tabs{
+  display:flex;background:var(--card);border-bottom:2px solid var(--line);
+  position:sticky;top:0;z-index:5;
+}
+nav.tabs button{
+  flex:1;padding:12px 4px;border:none;background:none;cursor:pointer;
+  font-family:'Atkinson Hyperlegible',sans-serif;font-size:.95em;font-weight:700;
+  color:var(--muted);border-bottom:3px solid transparent;
+}
+nav.tabs button.active{color:var(--pitch);border-bottom-color:var(--leather)}
+main{padding:16px;max-width:860px;margin:0 auto}
+.empty{
+  text-align:center;color:var(--muted);padding:44px 20px;
+  font-style:italic;line-height:1.6;
+}
+h2{
+  font-family:'Fraunces',serif;font-weight:700;font-size:1.25em;
+  color:var(--pitch);margin:6px 0 14px;
+}
+h3{
+  font-family:'Fraunces',serif;font-weight:500;font-size:1.05em;
+  color:var(--leather);margin:20px 0 10px;
+}
+/* ---------- Classement ---------- */
+.table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+table.ranking{border-collapse:collapse;width:100%;min-width:620px}
+table.ranking th,table.ranking td{
+  padding:9px 8px;text-align:center;white-space:nowrap;
+  font-family:'JetBrains Mono',monospace;font-size:.85em;
+}
+table.ranking th{
+  background:var(--pitch);color:var(--paper);
+  font-weight:600;font-size:.75em;letter-spacing:.05em;
+  position:sticky;top:0;
+}
+table.ranking td.team,table.ranking th.team{
+  text-align:left;font-family:'Atkinson Hyperlegible',sans-serif;
+  font-weight:700;font-size:.95em;
+  position:sticky;left:0;background:inherit;
+}
+table.ranking tbody tr{background:var(--card);border-bottom:1px solid var(--line)}
+table.ranking tbody tr:nth-child(even){background:#F4EFE3}
+table.ranking tbody tr:first-child{background:#EAF2E7}
+table.ranking tbody tr:first-child td.team::after{content:' 🏆';font-size:.8em}
+table.ranking td.pts{font-weight:600;color:var(--pitch);font-size:.95em}
+.legend{font-size:.78em;color:var(--muted);margin-top:10px;line-height:1.6}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pill{
+  padding:6px 14px;border-radius:16px;cursor:pointer;font-size:.85em;font-weight:700;
+  font-family:'Atkinson Hyperlegible',sans-serif;
+  background:var(--card);border:1.5px solid var(--line);color:var(--muted);
+}
+.pill.active{background:var(--pitch);border-color:var(--pitch);color:var(--paper)}
+.grp{
+  font-family:'JetBrains Mono',monospace;font-weight:400;font-size:.7em;
+  color:var(--muted);margin-left:6px;
+}
+.team-tag .grp{margin-left:0}
+/* ---------- Formulaires ---------- */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:16px;margin-bottom:16px;
+}
+label{display:block;font-weight:700;font-size:.85em;margin-bottom:5px;color:var(--pitch)}
+input,select{
+  width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;
+  font-family:'Atkinson Hyperlegible',sans-serif;font-size:1em;
+  background:#fff;color:var(--ink);
+}
+input[type=number]{font-family:'JetBrains Mono',monospace}
+input:focus,select:focus{outline:none;border-color:var(--pitch-soft)}
+.row{display:flex;gap:10px;margin-bottom:12px}
+.row>div{flex:1;min-width:0}
+.match-grid{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:8px 12px;
+  align-items:end;margin-bottom:12px;
+}
+.match-grid .vs{
+  font-family:'Fraunces',serif;font-weight:700;color:var(--leather);
+  padding-bottom:10px;font-size:1.1em;
+}
+.btn{
+  display:inline-block;width:100%;padding:12px;border:none;border-radius:10px;
+  background:var(--pitch);color:var(--paper);font-weight:700;font-size:1em;
+  font-family:'Atkinson Hyperlegible',sans-serif;cursor:pointer;
+}
+.btn.secondary{background:none;border:1.5px solid var(--pitch);color:var(--pitch)}
+.btn.small{width:auto;padding:7px 12px;font-size:.85em;border-radius:8px}
+.btn.danger{background:none;border:1.5px solid var(--danger);color:var(--danger)}
+/* ---------- Liste matchs ---------- */
+.journee-title{
+  font-family:'JetBrains Mono',monospace;font-size:.75em;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin:18px 0 8px;
+}
+.match-item{
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;margin-bottom:8px;
+}
+.match-line{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.match-line .name{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.match-line .name.away{text-align:right}
+.match-line .score{
+  font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1.15em;
+  color:var(--pitch);white-space:nowrap;
+}
+.match-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:7px;font-size:.78em;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;
+}
+.chips{display:flex;gap:5px}
+.chip{
+  display:inline-block;padding:1px 7px;border-radius:10px;font-size:.85em;
+  font-weight:600;
+}
+.chip.bo{background:#EAF2E7;color:var(--pitch);border:1px solid var(--pitch-soft)}
+.chip.bd{background:#F5EBDD;color:var(--leather);border:1px solid var(--leather)}
+.match-actions{display:flex;gap:6px}
+.match-actions button{
+  border:none;background:none;cursor:pointer;font-size:1em;padding:3px 5px;
+}
+/* ---------- Équipes ---------- */
+.team-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.team-tag{
+  background:#EAF2E7;border:1px solid var(--pitch-soft);border-radius:16px;
+  padding:5px 6px 5px 12px;display:flex;align-items:center;gap:6px;
+  font-weight:700;font-size:.9em;color:var(--pitch);
+}
+.team-tag button{
+  border:none;background:var(--pitch-soft);color:var(--paper);cursor:pointer;
+  border-radius:50%;width:20px;height:20px;line-height:1;font-size:.85em;
+}
+/* ---------- Règles ---------- */
+.presets{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.rule-block{
+  border-left:3px solid var(--line);padding-left:12px;margin-bottom:14px;
+}
+.rule-block.on{border-left-color:var(--pitch-soft)}
+.switch-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.switch-row input[type=checkbox]{width:auto;transform:scale(1.3)}
+.switch-row label{margin:0}
+.hint{font-size:.8em;color:var(--muted);margin-top:4px;line-height:1.5}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--pitch);color:var(--paper);padding:11px 20px;border-radius:10px;
+  font-weight:700;z-index:100;box-shadow:0 4px 15px rgba(0,0,0,.25);
+  opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1}
+@media(max-width:520px){
+  .match-grid{grid-template-columns:1fr;gap:8px}
+  .match-grid .vs{display:none}
+  .row.rules{flex-wrap:wrap}
+  .row.rules>div{flex:1 1 45%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="ball"></span>Ovalie</h1>
+  <p>Scores &amp; classements — chaque compétition, ses règles</p>
+</header>
+
+<div class="comp-bar">
+  <select id="compSelect" aria-label="Compétition"></select>
+  <button id="newCompBtn" title="Nouvelle compétition">＋</button>
+</div>
+
+<nav class="tabs">
+  <button data-tab="classement" class="active">Classement</button>
+  <button data-tab="matchs">Matchs</button>
+  <button data-tab="reglages">Compétition</button>
+</nav>
+
+<main>
+  <section id="tab-classement"></section>
+  <section id="tab-matchs" hidden></section>
+  <section id="tab-reglages" hidden></section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_KEY = 'ovalie_data_v1';
+let state = load();
+let editingMatchId = null;
+let groupFilter = null;
+
+function groupsOf(comp){ return comp.groups || (comp.groups = {}); }
+
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { competitions: [], currentId: null };
+}
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function current(){ return state.competitions.find(c => c.id === state.currentId) || null; }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+const DEFAULT_RULES = { win:4, draw:2, loss:0,
+  bo:{ on:true, mode:'abs', seuil:4 },
+  bd:{ on:true, ecart:7 } };
+
+const PRESETS = {
+  sixnations: { label:'Six Nations', rules:{ win:4, draw:2, loss:0, bo:{on:true,mode:'abs',seuil:4}, bd:{on:true,ecart:7} } },
+  top14:      { label:'Top 14',      rules:{ win:4, draw:2, loss:0, bo:{on:true,mode:'rel',seuil:3}, bd:{on:true,ecart:5} } }
+};
+
+/* ================= Calcul du classement ================= */
+function computeStandings(comp){
+  const stats = {};
+  comp.teams.forEach(t => stats[t] = { team:t, j:0,v:0,n:0,d:0, pp:0,pc:0, essais:0, bo:0, bd:0, pts:0 });
+  const r = comp.rules;
+
+  comp.matches.forEach(m => {
+    const A = stats[m.home], B = stats[m.away];
+    if(!A || !B) return; // équipe supprimée
+    A.j++; B.j++;
+    A.pp += m.sh; A.pc += m.sa; A.essais += m.eh;
+    B.pp += m.sa; B.pc += m.sh; B.essais += m.ea;
+
+    let winner = null, loser = null;
+    if(m.sh > m.sa){ winner=A; loser=B; A.v++; B.d++; A.pts+=r.win; B.pts+=r.loss; }
+    else if(m.sa > m.sh){ winner=B; loser=A; B.v++; A.d++; B.pts+=r.win; A.pts+=r.loss; }
+    else { A.n++; B.n++; A.pts+=r.draw; B.pts+=r.draw; }
+
+    // Bonus offensif
+    if(r.bo.on){
+      if(r.bo.mode === 'abs'){
+        if(m.eh >= r.bo.seuil){ A.bo++; A.pts++; }
+        if(m.ea >= r.bo.seuil){ B.bo++; B.pts++; }
+      } else if(winner){ // relatif : vainqueur uniquement
+        const diff = winner===A ? m.eh - m.ea : m.ea - m.eh;
+        if(diff >= r.bo.seuil){ winner.bo++; winner.pts++; }
+      }
+    }
+    // Bonus défensif
+    if(r.bd.on && loser){
+      if(Math.abs(m.sh - m.sa) <= r.bd.ecart){ loser.bd++; loser.pts++; }
+    }
+  });
+
+  return Object.values(stats).sort((a,b) =>
+    b.pts - a.pts ||
+    (b.pp-b.pc) - (a.pp-a.pc) ||
+    b.essais - a.essais ||
+    b.pp - a.pp ||
+    a.team.localeCompare(b.team,'fr')
+  );
+}
+
+/* Bonus d'un match (pour l'affichage des chips) */
+function matchBonuses(m, r){
+  const out = { home:[], away:[] };
+  let winner=null, margin=Math.abs(m.sh-m.sa);
+  if(m.sh>m.sa) winner='home'; else if(m.sa>m.sh) winner='away';
+  if(r.bo.on){
+    if(r.bo.mode==='abs'){
+      if(m.eh>=r.bo.seuil) out.home.push('BO');
+      if(m.ea>=r.bo.seuil) out.away.push('BO');
+    } else if(winner){
+      const d = winner==='home' ? m.eh-m.ea : m.ea-m.eh;
+      if(d>=r.bo.seuil) out[winner].push('BO');
+    }
+  }
+  if(r.bd.on && winner && margin<=r.bd.ecart){
+    out[winner==='home'?'away':'home'].push('BD');
+  }
+  return out;
+}
+
+/* ================= Rendu ================= */
+function renderAll(){
+  renderCompSelect();
+  renderClassement();
+  renderMatchs();
+  renderReglages();
+}
+
+function renderCompSelect(){
+  const sel = document.getElementById('compSelect');
+  sel.innerHTML = state.competitions.length
+    ? state.competitions.map(c => `<option value="${c.id}" ${c.id===state.currentId?'selected':''}>${esc(c.name)}</option>`).join('')
+    : '<option value="">— Aucune compétition —</option>';
+}
+
+function renderClassement(){
+  const el = document.getElementById('tab-classement');
+  const comp = current();
+  if(!comp){ el.innerHTML = emptyState(); return; }
+  if(!comp.teams.length){
+    el.innerHTML = `<div class="empty">Ajoute d'abord des équipes dans l'onglet <b>Compétition</b>.</div>`; return;
+  }
+  const g = groupsOf(comp);
+  const groupNames = [...new Set(Object.values(g).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+  if(groupFilter && !groupNames.includes(groupFilter)) groupFilter = null;
+
+  let rows = computeStandings(comp);
+  if(groupFilter) rows = rows.filter(s => g[s.team] === groupFilter);
+
+  const pills = groupNames.length ? `
+    <div class="pills">
+      <button class="pill ${!groupFilter?'active':''}" onclick="setGroupFilter(null)">Tous</button>
+      ${groupNames.map((n,i) => `<button class="pill ${groupFilter===n?'active':''}" onclick="setGroupFilter(${i})">${esc(n)}</button>`).join('')}
+    </div>` : '';
+  window._groupNames = groupNames;
+
+  el.innerHTML = `
+    <h2>${esc(comp.name)}</h2>
+    ${pills}
+    <div class="table-wrap"><table class="ranking">
+      <thead><tr>
+        <th>#</th><th class="team">Équipe</th><th>Pts</th><th>J</th><th>V</th><th>N</th><th>D</th>
+        <th>PP</th><th>PC</th><th>Diff</th><th>E</th><th>BO</th><th>BD</th>
+      </tr></thead>
+      <tbody>${rows.map((s,i) => `<tr>
+        <td>${i+1}</td>
+        <td class="team">${esc(s.team)}${(!groupFilter && g[s.team]) ? `<span class="grp">${esc(g[s.team])}</span>` : ''}</td>
+        <td class="pts">${s.pts}</td>
+        <td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td>
+        <td>${s.pp}</td><td>${s.pc}</td><td>${s.pp-s.pc>0?'+':''}${s.pp-s.pc}</td>
+        <td>${s.essais}</td><td>${s.bo}</td><td>${s.bd}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <p class="legend">PP/PC : points pour/contre · E : essais marqués · BO/BD : bonus offensifs/défensifs.<br>
+    Départage : points, puis différence, puis essais, puis points marqués.</p>`;
+}
+
+function renderMatchs(){
+  const el = document.getElementById('tab-matchs');
+  const comp = current();
+  if(!comp){ el.innerHTML = emptyState(); return; }
+  if(comp.teams.length < 2){
+    el.innerHTML = `<div class="empty">Il faut au moins deux équipes (onglet <b>Compétition</b>) pour encoder un match.</div>`; return;
+  }
+  const opts = t => comp.teams.map(x => `<option ${x===t?'selected':''}>${esc(x)}</option>`).join('');
+  const m = editingMatchId ? comp.matches.find(x => x.id===editingMatchId) : null;
+
+  el.innerHTML = `
+    <div class="card">
+      <h2>${m ? 'Modifier le match' : 'Nouveau match'}</h2>
+      <div class="match-grid">
+        <div><label>Équipe A</label><select id="mHome"><option value="">—</option>${opts(m?.home)}</select></div>
+        <div class="vs">vs</div>
+        <div><label>Équipe B</label><select id="mAway"><option value="">—</option>${opts(m?.away)}</select></div>
+        <div class="row" style="margin:0">
+          <div><label>Score A</label><input type="number" id="mSh" min="0" inputmode="numeric" value="${m?m.sh:''}"></div>
+          <div><label>Essais A</label><input type="number" id="mEh" min="0" inputmode="numeric" value="${m?m.eh:''}"></div>
+        </div>
+        <div></div>
+        <div class="row" style="margin:0">
+          <div><label>Score B</label><input type="number" id="mSa" min="0" inputmode="numeric" value="${m?m.sa:''}"></div>
+          <div><label>Essais B</label><input type="number" id="mEa" min="0" inputmode="numeric" value="${m?m.ea:''}"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Journée (optionnel)</label><input type="number" id="mJournee" min="1" inputmode="numeric" value="${m?.journee||''}"></div>
+      </div>
+      <button class="btn" id="saveMatchBtn">${m ? 'Enregistrer les modifications' : 'Ajouter le match'}</button>
+      ${m ? '<button class="btn secondary" id="cancelEditBtn" style="margin-top:8px">Annuler</button>' : ''}
+    </div>
+    <div id="matchList"></div>`;
+
+  document.getElementById('saveMatchBtn').onclick = saveMatch;
+  const cancel = document.getElementById('cancelEditBtn');
+  if(cancel) cancel.onclick = () => { editingMatchId = null; renderMatchs(); };
+
+  // Liste des matchs groupés par journée
+  const list = document.getElementById('matchList');
+  if(!comp.matches.length){
+    list.innerHTML = `<div class="empty">Aucun match encodé pour l'instant.</div>`; return;
+  }
+  const groups = {};
+  comp.matches.forEach(x => {
+    const k = x.journee ? 'J'+x.journee : 'Sans journée';
+    (groups[k] = groups[k] || []).push(x);
+  });
+  const keys = Object.keys(groups).sort((a,b) => {
+    const na = parseInt(a.slice(1)), nb = parseInt(b.slice(1));
+    if(isNaN(na)) return 1; if(isNaN(nb)) return -1;
+    return nb - na;
+  });
+  list.innerHTML = keys.map(k => `
+    <div class="journee-title">${esc(k)}</div>
+    ${groups[k].map(x => {
+      const b = matchBonuses(x, comp.rules);
+      const chips = side => b[side].map(c => `<span class="chip ${c.toLowerCase()}">${c}</span>`).join('');
+      return `<div class="match-item">
+        <div class="match-line">
+          <span class="name">${esc(x.home)}</span>
+          <span class="score">${x.sh} – ${x.sa}</span>
+          <span class="name away">${esc(x.away)}</span>
+        </div>
+        <div class="match-meta">
+          <span class="chips">${chips('home')}<span style="color:var(--muted)">${x.eh}E</span></span>
+          <span class="match-actions">
+            <button title="Modifier" onclick="startEdit('${x.id}')">✏️</button>
+            <button title="Supprimer" onclick="delMatch('${x.id}')">🗑️</button>
+          </span>
+          <span class="chips"><span style="color:var(--muted)">${x.ea}E</span>${chips('away')}</span>
+        </div>
+      </div>`;
+    }).join('')}`).join('');
+}
+
+function saveMatch(){
+  const comp = current(); if(!comp) return;
+  const home = document.getElementById('mHome').value;
+  const away = document.getElementById('mAway').value;
+  const sh = parseInt(document.getElementById('mSh').value);
+  const sa = parseInt(document.getElementById('mSa').value);
+  const eh = parseInt(document.getElementById('mEh').value) || 0;
+  const ea = parseInt(document.getElementById('mEa').value) || 0;
+  const jv = document.getElementById('mJournee').value;
+  if(!home || !away){ toast('Choisis les deux équipes'); return; }
+  if(home === away){ toast('Une équipe ne joue pas contre elle-même 😉'); return; }
+  if(isNaN(sh) || isNaN(sa)){ toast('Scores manquants'); return; }
+  const data = { home, away, sh, sa, eh, ea, journee: jv ? parseInt(jv) : null };
+  if(editingMatchId){
+    Object.assign(comp.matches.find(x => x.id===editingMatchId), data);
+    editingMatchId = null;
+    toast('Match modifié');
+  } else {
+    comp.matches.unshift({ id: uid(), ...data });
+    toast('Match ajouté');
+  }
+  save(); renderMatchs(); renderClassement();
+}
+
+function setGroupFilter(i){
+  groupFilter = (i === null) ? null : window._groupNames[i];
+  renderClassement();
+}
+
+function startEdit(id){ editingMatchId = id; renderMatchs(); window.scrollTo({top:0,behavior:'smooth'}); }
+function delMatch(id){
+  const comp = current();
+  const m = comp.matches.find(x => x.id===id);
+  if(confirm(`Supprimer ${m.home} ${m.sh}–${m.sa} ${m.away} ?`)){
+    comp.matches = comp.matches.filter(x => x.id!==id);
+    if(editingMatchId===id) editingMatchId=null;
+    save(); renderMatchs(); renderClassement();
+  }
+}
+
+function renderReglages(){
+  const el = document.getElementById('tab-reglages');
+  const comp = current();
+  if(!comp){ el.innerHTML = emptyState(); return; }
+  const r = comp.rules;
+  el.innerHTML = `
+    <div class="card">
+      <h2>Réglages — ${esc(comp.name)}</h2>
+      <div class="row"><div>
+        <label>Nom de la compétition</label>
+        <input id="rName" value="${esc(comp.name)}">
+      </div></div>
+
+      <h3>Équipes</h3>
+      <div class="team-list">${comp.teams.map((t,i) => {
+        const gr = groupsOf(comp)[t];
+        return `<span class="team-tag">${esc(t)}${gr ? `<span class="grp">· ${esc(gr)}</span>` : ''}<button onclick="editGroup(${i})" title="Groupe" style="background:var(--leather)">✎</button><button onclick="delTeam(${i})" title="Retirer">×</button></span>`;
+      }).join('') || '<span class="hint">Aucune équipe.</span>'}
+      </div>
+      <div class="row">
+        <div style="flex:2"><input id="newTeam" placeholder="Nom de l'équipe"></div>
+        <div><input id="newTeamGroup" placeholder="Groupe (opt.)"></div>
+        <div style="flex:0 0 auto"><button class="btn small" onclick="addTeam()">Ajouter</button></div>
+      </div>
+      <p class="hint">Le groupe (ex. « Nord », « Sud », « Poule A ») permet de filtrer le classement. Le calcul, lui, reste unique : tous les matchs comptent.</p>
+
+      <h3>Barème</h3>
+      <div class="presets">
+        <button class="btn small secondary" onclick="applyPreset('sixnations')">Préréglage Six Nations</button>
+        <button class="btn small secondary" onclick="applyPreset('top14')">Préréglage Top 14</button>
+      </div>
+      <div class="row rules">
+        <div><label>Victoire</label><input type="number" id="rWin" value="${r.win}" inputmode="numeric"></div>
+        <div><label>Nul</label><input type="number" id="rDraw" value="${r.draw}" inputmode="numeric"></div>
+        <div><label>Défaite</label><input type="number" id="rLoss" value="${r.loss}" inputmode="numeric"></div>
+      </div>
+
+      <div class="rule-block ${r.bo.on?'on':''}">
+        <div class="switch-row">
+          <input type="checkbox" id="rBoOn" ${r.bo.on?'checked':''}>
+          <label for="rBoOn">Bonus offensif (+1 pt)</label>
+        </div>
+        <div class="row rules">
+          <div><label>Type</label>
+            <select id="rBoMode">
+              <option value="abs" ${r.bo.mode==='abs'?'selected':''}>Seuil absolu (X essais marqués)</option>
+              <option value="rel" ${r.bo.mode==='rel'?'selected':''}>Relatif (X essais de plus, vainqueur seul)</option>
+            </select>
+          </div>
+          <div><label>Seuil</label><input type="number" id="rBoSeuil" value="${r.bo.seuil}" min="1" inputmode="numeric"></div>
+        </div>
+        <p class="hint">Absolu : toute équipe atteignant le seuil, même battue (style Six Nations). Relatif : le vainqueur, s'il marque X essais de plus que l'adversaire (style Top 14).</p>
+      </div>
+
+      <div class="rule-block ${r.bd.on?'on':''}">
+        <div class="switch-row">
+          <input type="checkbox" id="rBdOn" ${r.bd.on?'checked':''}>
+          <label for="rBdOn">Bonus défensif (+1 pt)</label>
+        </div>
+        <div class="row rules">
+          <div><label>Écart maximal (points)</label><input type="number" id="rBdEcart" value="${r.bd.ecart}" min="1" inputmode="numeric"></div>
+        </div>
+        <p class="hint">Accordé au perdant si l'écart final est inférieur ou égal à ce seuil.</p>
+      </div>
+
+      <button class="btn" onclick="saveRules()">Enregistrer les réglages</button>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Sauvegarde</h3>
+      <div class="row">
+        <div><button class="btn secondary" onclick="exportJSON()">Exporter (JSON)</button></div>
+        <div><button class="btn secondary" onclick="document.getElementById('importFile').click()">Importer</button></div>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importJSON(event)">
+      <p class="hint">L'export couvre toutes les compétitions. L'import remplace tout : exporte d'abord si nécessaire.</p>
+    </div>
+
+    <div class="card">
+      <button class="btn danger" onclick="delCompetition()">Supprimer cette compétition</button>
+    </div>`;
+}
+
+function saveRules(){
+  const comp = current(); if(!comp) return;
+  const name = document.getElementById('rName').value.trim();
+  if(name) comp.name = name;
+  comp.rules = {
+    win: parseInt(document.getElementById('rWin').value) || 0,
+    draw: parseInt(document.getElementById('rDraw').value) || 0,
+    loss: parseInt(document.getElementById('rLoss').value) || 0,
+    bo: {
+      on: document.getElementById('rBoOn').checked,
+      mode: document.getElementById('rBoMode').value,
+      seuil: parseInt(document.getElementById('rBoSeuil').value) || 4
+    },
+    bd: {
+      on: document.getElementById('rBdOn').checked,
+      ecart: parseInt(document.getElementById('rBdEcart').value) || 7
+    }
+  };
+  save(); renderAll(); toast('Réglages enregistrés');
+}
+
+function applyPreset(key){
+  const comp = current(); if(!comp) return;
+  comp.rules = JSON.parse(JSON.stringify(PRESETS[key].rules));
+  save(); renderReglages(); toast('Préréglage ' + PRESETS[key].label + ' appliqué');
+}
+
+function addTeam(){
+  const comp = current(); if(!comp) return;
+  const input = document.getElementById('newTeam');
+  const name = input.value.trim();
+  if(!name) return;
+  if(comp.teams.some(t => t.toLowerCase() === name.toLowerCase())){ toast('Équipe déjà présente'); return; }
+  comp.teams.push(name);
+  const gr = document.getElementById('newTeamGroup').value.trim();
+  if(gr) groupsOf(comp)[name] = gr;
+  save(); renderReglages(); renderClassement();
+  document.getElementById('newTeam').focus();
+}
+
+function editGroup(i){
+  const comp = current();
+  const name = comp.teams[i];
+  if(name === undefined) return;
+  const cur = groupsOf(comp)[name] || '';
+  const gr = prompt(`Groupe de « ${name} » (vide pour retirer) :`, cur);
+  if(gr === null) return;
+  if(gr.trim()) groupsOf(comp)[name] = gr.trim();
+  else delete groupsOf(comp)[name];
+  save(); renderReglages(); renderClassement();
+}
+
+function delTeam(i){
+  const comp = current();
+  const name = comp.teams[i];
+  if(name === undefined) return;
+  const nb = comp.matches.filter(m => m.home===name || m.away===name).length;
+  const msg = nb
+    ? `Retirer « ${name} » ? Ses ${nb} match(s) seront aussi supprimés.`
+    : `Retirer « ${name} » ?`;
+  if(confirm(msg)){
+    comp.teams = comp.teams.filter(t => t!==name);
+    comp.matches = comp.matches.filter(m => m.home!==name && m.away!==name);
+    delete groupsOf(comp)[name];
+    save(); renderAll();
+  }
+}
+
+function newCompetition(){
+  const name = prompt('Nom de la nouvelle compétition :');
+  if(!name || !name.trim()) return;
+  const comp = { id: uid(), name: name.trim(), teams: [], matches: [],
+    rules: JSON.parse(JSON.stringify(DEFAULT_RULES)) };
+  state.competitions.push(comp);
+  state.currentId = comp.id;
+  save(); renderAll();
+  switchTab('reglages');
+  toast('Compétition créée — ajoute les équipes');
+}
+
+function delCompetition(){
+  const comp = current(); if(!comp) return;
+  if(confirm(`Supprimer définitivement « ${comp.name} » et tous ses matchs ?`)){
+    state.competitions = state.competitions.filter(c => c.id!==comp.id);
+    state.currentId = state.competitions[0]?.id || null;
+    save(); renderAll();
+  }
+}
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date().toISOString().slice(0,10);
+  a.download = `ovalie-export-${d}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importJSON(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data.competitions)) throw new Error('format');
+      state = data;
+      if(!current()) state.currentId = state.competitions[0]?.id || null;
+      save(); renderAll(); toast('Import réussi');
+    }catch(err){ toast('Fichier invalide'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+function emptyState(){
+  return `<div class="empty">Aucune compétition pour l'instant.<br>Appuie sur <b>＋</b> en haut pour en créer une.</div>`;
+}
+
+/* ================= Navigation ================= */
+function switchTab(name){
+  document.querySelectorAll('nav.tabs button').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  ['classement','matchs','reglages'].forEach(t =>
+    document.getElementById('tab-'+t).hidden = (t !== name));
+}
+document.querySelectorAll('nav.tabs button').forEach(b =>
+  b.onclick = () => switchTab(b.dataset.tab));
+
+document.getElementById('compSelect').onchange = e => {
+  state.currentId = e.target.value || null;
+  editingMatchId = null;
+  groupFilter = null;
+  save(); renderAll();
+};
+document.getElementById('newCompBtn').onclick = newCompetition;
+
+renderAll();
+
+/* ================= PWA ================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () =>
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
