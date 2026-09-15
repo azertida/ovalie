@@ -108,13 +108,15 @@ table.ranking th,table.ranking td{
 table.ranking th{
   background:var(--pitch);color:var(--paper);
   font-weight:600;font-size:.75em;letter-spacing:.05em;
-  position:sticky;top:0;
+  position:sticky;top:0;z-index:2;
 }
 table.ranking td.team,table.ranking th.team{
   text-align:left;font-family:'Atkinson Hyperlegible',sans-serif;
   font-weight:700;font-size:.95em;
-  position:sticky;left:0;background:inherit;
+  position:sticky;left:0;
 }
+table.ranking td.team{background:inherit;z-index:1}
+table.ranking th.team{background:var(--pitch);color:var(--paper);z-index:3}
 table.ranking tbody tr{background:var(--card);border-bottom:1px solid var(--line)}
 table.ranking tbody tr:nth-child(even){background:#F4EFE3}
 table.ranking tbody tr:first-child{background:#EAF2E7}
