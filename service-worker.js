@@ -1,4 +1,4 @@
-const CACHE = 'ovalie-v3';
+const CACHE = 'ovalie-v4';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.png'];
 
 self.addEventListener('install', e => {

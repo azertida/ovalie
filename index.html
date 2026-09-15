@@ -90,6 +90,7 @@ main{padding:16px;max-width:860px;margin:0 auto}
   text-align:center;color:var(--muted);padding:44px 20px;
   font-style:italic;line-height:1.6;
 }
+.empty-action{margin-top:20px;font-style:normal}
 h2{
   font-family:'Fraunces',serif;font-weight:700;font-size:1.25em;
   color:var(--pitch);margin:6px 0 14px;
@@ -259,6 +260,8 @@ input:focus,select:focus{outline:none;border-color:var(--pitch-soft)}
   <section id="tab-matchs" hidden></section>
   <section id="tab-reglages" hidden></section>
 </main>
+
+<input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importJSON(event)">
 
 <div class="toast" id="toast"></div>
 
@@ -607,7 +610,6 @@ function renderReglages(){
         <div><button class="btn secondary" onclick="exportJSON()">Exporter (JSON)</button></div>
         <div><button class="btn secondary" onclick="document.getElementById('importFile').click()">Importer</button></div>
       </div>
-      <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importJSON(event)">
       <p class="hint">L'export couvre toutes les compétitions. L'import remplace tout : exporte d'abord si nécessaire.</p>
     </div>
 
@@ -732,7 +734,9 @@ function importJSON(ev){
 }
 
 function emptyState(){
-  return `<div class="empty">Aucune compétition pour l'instant.<br>Appuie sur <b>＋</b> en haut pour en créer une.</div>`;
+  return `<div class="empty">Aucune compétition pour l'instant.<br>Appuie sur <b>＋</b> en haut pour en créer une.
+    <div class="empty-action"><button class="btn secondary small" onclick="document.getElementById('importFile').click()">Restaurer une sauvegarde (JSON)</button></div>
+  </div>`;
 }
 
 /* ================= Navigation ================= */

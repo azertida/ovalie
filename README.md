@@ -32,7 +32,7 @@ icons/                icônes du manifest (192 et 512 utilisées)
 
 ## Données
 
-Stockées dans le `localStorage` du navigateur sous la clé `ovalie_data_v1`. Export et import JSON de toutes les compétitions d'un coup, depuis l'onglet Compétition.
+Stockées dans le `localStorage` du navigateur sous la clé `ovalie_data_v1`. Export et import JSON de toutes les compétitions d'un coup, depuis l'onglet Réglages — ou, sur une installation vierge, depuis le bouton de restauration de l'écran d'accueil.
 
 Deux conséquences à garder en tête :
 
@@ -45,6 +45,7 @@ Tout se passe dans `index.html`. Après chaque modification, incrémenter `CACHE
 
 ## Historique
 
+- `v4` — bouton de restauration JSON dans l'état vide (l'import était inatteignable tant qu'aucune compétition n'existait) ; champ de fichier déplacé dans le HTML statique
 - `v3` — correction de l'en-tête « Équipe » du classement (fond effacé par un `background:inherit` hérité de la règle des cellules) et `z-index` des colonnes collantes ; migration de Netlify vers GitHub Pages
 - `v2` — groupes d'équipes et filtres de sous-classement
 - `v1` — version initiale
