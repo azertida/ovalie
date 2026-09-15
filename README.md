@@ -32,12 +32,12 @@ icons/                icônes du manifest (192 et 512 utilisées)
 
 ## Données
 
-Stockées dans le `localStorage` du navigateur sous la clé `ovalie_data_v1`. Export et import JSON de toutes les compétitions d'un coup, depuis l'onglet Réglages — ou, sur une installation vierge, depuis le bouton de restauration de l'écran d'accueil.
+Stockées dans le `localStorage` du navigateur sous la clé `ovalie_data_v1`. Export et import JSON de toutes les compétitions d'un coup, depuis l'onglet Compétition — ou, sur une installation vierge, depuis le bouton de restauration de l'écran d'accueil.
 
 Deux conséquences à garder en tête :
 
 - Changer de domaine d'hébergement = repartir de zéro. Exporter avant, importer après.
-- Sur iOS, le stockage de la PWA installée est isolé de celui de l'onglet Safari. Exporter depuis le contexte réellement utilisé.
+- Sur iOS, la PWA installée et l'onglet Safari sont deux contextes séparés. Le `localStorage` est isolé — exporter depuis le contexte réellement utilisé. **Le cache du service worker l'est aussi** : après une mise en ligne, l'un des deux peut afficher la nouvelle version pendant que l'autre sert encore l'ancienne depuis son cache. Ce n'est pas un déploiement raté. Pour forcer le rattrapage du retardataire, fermer l'onglet ou l'appli et rouvrir.
 
 ## Modifier l'application
 
